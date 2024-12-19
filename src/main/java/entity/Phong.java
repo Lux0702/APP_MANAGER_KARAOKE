@@ -6,6 +6,7 @@ import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Getter
 @Setter
@@ -17,6 +18,8 @@ public class Phong implements java.io.Serializable{
     @Column(name = "maPhong", nullable = false, length = 10)
     private String maPhong;
 
+	@OneToMany(mappedBy = "phong")
+	private List<DatPhongTruoc> datPhongTruocList;
     @Nationalized
     @Column(name = "tenPhong", length = 50)
     private String tenPhong;

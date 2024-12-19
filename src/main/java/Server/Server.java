@@ -1,11 +1,9 @@
 package Server;
 
-import gui.Menu_GUI;
 import model.*;
 import model.impl.*;
 import util.HibernateUtil;
 
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import javax.naming.Context;
@@ -13,8 +11,6 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
-
-import static util.HibernateUtil.sessionFactory;
 
 public class Server {
     private static final String URL = Config.SERVER_URL;
@@ -33,7 +29,7 @@ public class Server {
         LoaiPhongDao loaiPhongDao = new LoaiPhongDaoImpl(sessionFactory);
         LoaiDichVuDao loaiDichVuDao = new LoaiDichVuDaoImpl(sessionFactory);
         TaiKhoanDao taiKhoanDao = new TaiKhoanDaoImpl(sessionFactory);
-
+        DatPhongTruocDao datPhongTruocDao = new DatPhongTruocDaoImpl(sessionFactory);
         LocateRegistry.createRegistry(7878);
 
         context.bind(URL + "nhanVienDao", nhanVienDao);
@@ -47,6 +43,7 @@ public class Server {
         context.bind(URL + "loaiPhongDao", loaiPhongDao);
         context.bind(URL + "loaiDichVuDao", loaiDichVuDao);
         context.bind(URL + "taiKhoanDao", taiKhoanDao);
+        context.bind(URL + "datPhongTruocDao", datPhongTruocDao);
 
         System.out.println("Server is running...");
         //new Menu_GUI();

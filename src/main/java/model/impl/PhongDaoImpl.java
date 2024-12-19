@@ -43,6 +43,22 @@ public class PhongDaoImpl extends UnicastRemoteObject implements PhongDao {
         return p;
     }
 
+    public Phong getPhongByMaPhong(String maP) {
+        Transaction transaction = null;
+        Phong p = null;
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.beginTransaction();
+            p = session.get(Phong.class, maP);
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            e.printStackTrace();
+        }
+        return p;
+    }
+
     public boolean createPhong(Phong p) {
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {

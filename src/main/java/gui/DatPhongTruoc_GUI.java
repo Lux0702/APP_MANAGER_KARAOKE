@@ -1,99 +1,85 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.awt.event.*;
+import java.rmi.Naming;
+import java.rmi.RemoteException;
+import java.sql.*;
 import java.awt.EventQueue;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.JMenuBar;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JLabel;
 import java.awt.Font;
-import javax.swing.SwingConstants;
-import javax.swing.JButton;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.awt.TextField;
-import javax.swing.JComboBox;
-import javax.swing.AbstractButton;
-import javax.swing.Box;
-import javax.swing.ImageIcon;
 import javax.swing.border.BevelBorder;
-import javax.swing.JTabbedPane;
 import javax.swing.border.TitledBorder;
 import javax.swing.border.EtchedBorder;
 import java.awt.Color;
-import javax.swing.JTable;
-import javax.swing.JTextField;
 import java.awt.Component;
-import javax.swing.JScrollPane;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellEditor;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.rmi.Naming;
-import java.rmi.RemoteException;
-import java.sql.Date;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 
 import Server.Config;
 import bll.SessionManager;
-import entity.ChucVu;
-import entity.NhanVien;
-import entity.TaiKhoan;
-import model.ChucVuDao;
-import model.NhanVienDao;
-import model.TaiKhoanDao;
+import entity.*;
+import model.*;
 import org.hibernate.LazyInitializationException;
 import util.HibernateUtil;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 
-public class TaiKhoan_GUI extends JFrame implements ActionListener, MouseListener{
+public class DatPhongTruoc_GUI extends JFrame implements ActionListener, MouseListener{
 
     private JPanel contentPane;
-    private JTextField textField_tenTK;
-    private JTextField textField_mk;
-    private JTextField textField_maNV;
-    private JTextField textField_role;
-    private JTable table;
+    private JTable table_1;
+    private JTable table_2;
+    private JTable table_3;
+    private JTable table_4;
+    private KhachHangDao kh_dao;
     private NhanVienDao nv_dao;
-    private ChucVuDao cv_dao;
-    private DefaultTableModel tableModel;
-    private JComboBox comboBox_role;
-    private JComboBox comboBox_maNV;
-    private JButton btnNewButton_them;
-    private JButton btnNewButton_xoa;
-    private JButton btnNewButton_sua;
-    private JButton btnNewButton_xoaTrang;
-    private JTextField txt_timkiemnhanvien;
+    private PhongDao phong_dao;
+    private DefaultTableModel tableModel1;
+    private DefaultTableModel tableModel2;
+    private DefaultTableModel tableModel3;
+    private DefaultTableModel tableModel4;
+    private JButton btnNewButton_DP;
+    private JTextField textField;
+    private JTextField textField_1;
+    private PhieuDatPhongDao pdp_dao;
+    private DatPhongTruocDao dpt_dao;
+    private JButton btnNewButton_load,btnNewButton_Confirm;
     private TaiKhoan user;
     private TaiKhoanDao tk_dao;
     private SessionManager currentUser = SessionManager.getInstance();
-    public TaiKhoan_GUI() throws RemoteException {
+    private JTextField txt_timkiemKH;
+    private JTextField txt_timkiemnNV;
+    private JTextField txt_timkiemP;
 
-        try{
+
+    public DatPhongTruoc_GUI() throws RemoteException {
+
+        try {
+            kh_dao = (KhachHangDao) Naming.lookup(Config.SERVER_URL+"khachHangDao");
             nv_dao = (NhanVienDao) Naming.lookup(Config.SERVER_URL+"nhanVienDao");
-            cv_dao = (ChucVuDao) Naming.lookup(Config.SERVER_URL + "chucVuDao");
+            phong_dao = (PhongDao) Naming.lookup(Config.SERVER_URL+"phongDao");
+            pdp_dao = (PhieuDatPhongDao) Naming.lookup(Config.SERVER_URL+"phieuDatPhongDao");
             tk_dao = (TaiKhoanDao) Naming.lookup(Config.SERVER_URL + "taiKhoanDao");
-        }catch (Exception e){
-            JOptionPane.showMessageDialog(this, "Server chưa mở");
+            dpt_dao = (DatPhongTruocDao) Naming.lookup(Config.SERVER_URL + "datPhongTruocDao");
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setBounds(0, 0, 1650, 1080);
+
         JMenuBar menuBar = new JMenuBar();
         setJMenuBar(menuBar);
         user = tk_dao.getTaiKhoanById(currentUser.getCurrentUser());
@@ -467,160 +453,385 @@ public class TaiKhoan_GUI extends JFrame implements ActionListener, MouseListene
         setContentPane(contentPane);
         contentPane.setLayout(null);
 
-        JLabel lblNewLabel = new JLabel("THÔNG TIN TÀI KHOẢN");
+        JLabel lblNewLabel = new JLabel("ĐẶT PHÒNG TRƯỚC");
         lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        lblNewLabel.setFont(new Font("Tahoma", Font.PLAIN, 50));
-        lblNewLabel.setBounds(426, 0, 650, 74);
+        lblNewLabel.setFont(new Font("Tahoma", Font.PLAIN, 25));
+        lblNewLabel.setBounds(415, 0, 650, 74);
         contentPane.add(lblNewLabel);
 
-        JLabel lblNewLabel_tenTK = new JLabel("Tên tài khoản:");
-        lblNewLabel_tenTK.setFont(new Font("Tahoma", Font.PLAIN, 15));
-        lblNewLabel_tenTK.setBounds(587, 118, 108, 29);
-        contentPane.add(lblNewLabel_tenTK);
-
-        JLabel lblNewLabel_mk = new JLabel("Mật khẩu:");
-        lblNewLabel_mk.setFont(new Font("Tahoma", Font.PLAIN, 15));
-        lblNewLabel_mk.setBounds(587, 172, 108, 29);
-        contentPane.add(lblNewLabel_mk);
-
-        JLabel lblNewLabel_maNV = new JLabel("Mã nhân viên:");
-        lblNewLabel_maNV.setFont(new Font("Tahoma", Font.PLAIN, 15));
-        lblNewLabel_maNV.setBounds(910, 118, 124, 29);
-        contentPane.add(lblNewLabel_maNV);
-
-        JLabel lblNewLabel_role = new JLabel("Vai trò:");
-        lblNewLabel_role.setFont(new Font("Tahoma", Font.PLAIN, 15));
-        lblNewLabel_role.setBounds(910, 172, 74, 29);
-        contentPane.add(lblNewLabel_role);
-
-        textField_tenTK = new JTextField();
-        textField_tenTK.setBounds(705, 122, 146, 26);
-        contentPane.add(textField_tenTK);
-        textField_tenTK.setColumns(10);
-        textField_tenTK.setEnabled(false);
-
-        textField_mk = new JTextField();
-        textField_mk.setBounds(705, 176, 146, 26);
-        contentPane.add(textField_mk);
-        textField_mk.setColumns(10);
-
-        textField_maNV = new JTextField();
-        textField_maNV.setColumns(10);
-        textField_maNV.setBounds(1010, 122, 146, 26);
-
-        textField_role = new JTextField();
-        textField_role.setColumns(10);
-        textField_role.setBounds(1010, 176, 146, 26);
-
-
-        comboBox_role = new JComboBox();
-        comboBox_role.setEditable(true);
-        comboBox_role.addItem("admin");
-        comboBox_role.addItem("employee");
-        comboBox_role.setBounds(1010, 176, 146, 26);
-        contentPane.add(comboBox_role);
-
-        comboBox_maNV = new JComboBox();
-        comboBox_maNV.setEditable(true);
-        for(String maNV : nv_dao.getAllMaNhanVien()) {
-            comboBox_maNV.addItem(maNV.trim());
-        }
-        comboBox_maNV.setBounds(1010, 122, 146, 26);
-        contentPane.add(comboBox_maNV);
-
-        btnNewButton_them = new JButton("Thêm");
-        btnNewButton_them.setFont(new Font("Tahoma", Font.PLAIN, 20));
-        btnNewButton_them.setBounds(724, 236, 134, 39);
-        contentPane.add(btnNewButton_them);
-
-        btnNewButton_xoa = new JButton("Xoá");
-        btnNewButton_xoa.setFont(new Font("Tahoma", Font.PLAIN, 20));
-        btnNewButton_xoa.setBounds(906, 236, 134, 39);
-        contentPane.add(btnNewButton_xoa);
-
-        btnNewButton_sua = new JButton("Sửa");
-        btnNewButton_sua.setFont(new Font("Tahoma", Font.PLAIN, 20));
-        btnNewButton_sua.setBounds(1084, 236, 134, 39);
-        contentPane.add(btnNewButton_sua);
-
-        btnNewButton_xoaTrang = new JButton("Xoá Trắng");
-        btnNewButton_xoaTrang.setFont(new Font("Tahoma", Font.PLAIN, 20));
-        btnNewButton_xoaTrang.setBounds(1265, 236, 134, 39);
-        contentPane.add(btnNewButton_xoaTrang);
-
-
-        String [] headers = {"Tên tài khoản", "Mật khẩu","Mã nhân viên","Vai trò"};
-        tableModel=new DefaultTableModel(headers,0);
+        Box horizontalBox_1 = Box.createHorizontalBox();
+        horizontalBox_1.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)), "Danh s\u00E1ch kh\u00E1ch h\u00E0ng ch\u1EDD", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+        horizontalBox_1.setBounds(10, 84, 503, 315);
+        contentPane.add(horizontalBox_1);
+        //
+        String [] headers1 = {"Mã Khách Hàng","Tên Khách Hàng", "SĐT"};
+        tableModel1=new DefaultTableModel(headers1,0);
         JScrollPane scroll = new JScrollPane();
-        scroll.setViewportView(table = new JTable(tableModel));
-        table.setRowHeight(25);
-        table.setAutoCreateRowSorter(true);
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_NEXT_COLUMN);
+        scroll.setViewportView(table_1 = new JTable(tableModel1));
+        table_1.setRowHeight(25);
+        table_1.setAutoCreateRowSorter(true);
+        table_1.setAutoResizeMode(JTable.AUTO_RESIZE_NEXT_COLUMN);
+        //
+        JScrollPane scrollPane_1 = new JScrollPane(table_1);
+        horizontalBox_1.add(scrollPane_1);
 
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBounds(314, 331, 1216, 391);
-        contentPane.add(scrollPane);
 
-        JLabel lblNewLabel_2 = new JLabel("Danh sách Tài Khoản:");
-        lblNewLabel_2.setFont(new Font("Tahoma", Font.BOLD, 15));
-        lblNewLabel_2.setBounds(314, 300, 188, 29);
-        contentPane.add(lblNewLabel_2);
+        Box horizontalBox_2 = Box.createHorizontalBox();
+        horizontalBox_2.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)), "Danh s\u00E1ch ph\u00F2ng tr\u1ED1ng", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+        horizontalBox_2.setBounds(10, 465, 520, 255);
+        contentPane.add(horizontalBox_2);
+        //
+        String [] headers2 = {"Mã Phòng","Tên Phòng", "Loại Phòng", "Trạng Thái"};
+        tableModel2=new DefaultTableModel(headers2,0);
+        JScrollPane scroll2 = new JScrollPane();
+        scroll2.setViewportView(table_2 = new JTable(tableModel2));
+        table_2.setRowHeight(25);
+        table_2.setAutoCreateRowSorter(true);
+        table_2.setAutoResizeMode(JTable.AUTO_RESIZE_NEXT_COLUMN);
+        //
+        JScrollPane scrollPane_2 = new JScrollPane(table_2);
+        horizontalBox_2.add(scrollPane_2);
 
-        Box horizontalBox = Box.createHorizontalBox();
-        horizontalBox.setBorder(new TitledBorder(null, "Thông Tin Tài Khoản", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-        horizontalBox.setBounds(314, 103, 1216, 135);
-        contentPane.add(horizontalBox);
+        JLabel lblNewLabel_maNV_1 = new JLabel("Tìm Kiếm Nhân viên");
+        lblNewLabel_maNV_1.setFont(new Font("Tahoma", Font.BOLD, 15));
+        lblNewLabel_maNV_1.setBounds(1008, 27, 188, 29);
+        //contentPane.add(lblNewLabel_maNV_1);
 
-        JLabel lblNewLabel_maNV_1 = new JLabel("Tìm Kiếm Tài Khoản");
-        lblNewLabel_maNV_1.setFont(new Font("Times New Roman", Font.BOLD, 15));
-        lblNewLabel_maNV_1.setBounds(10, 0, 188, 29);
-        contentPane.add(lblNewLabel_maNV_1);
-
-        txt_timkiemnhanvien = new JTextField();
-        txt_timkiemnhanvien.setForeground(Color.GRAY);
-        txt_timkiemnhanvien.addFocusListener(new FocusAdapter() {
-            @Override
+        txt_timkiemnNV = new JTextField("Tìm kiếm tên/mã...");
+        txt_timkiemnNV.setForeground(Color.GRAY);
+        txt_timkiemnNV.setColumns(10);
+        txt_timkiemnNV.setBounds(1008, 52, 236, 26);
+        //contentPane.add(txt_timkiemnNV);
+        txt_timkiemnNV.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent e) {
-                if(txt_timkiemnhanvien.getText().equals("Mã, Tên, Điện thoại")) {
-                    txt_timkiemnhanvien.setText("");
-                    txt_timkiemnhanvien.setForeground(new Color(153,153,153));
+                if (txt_timkiemnNV.getText().equals("Tìm kiếm tên/mã...")) {
+                    txt_timkiemnNV.setText("");
+                    txt_timkiemnNV.setForeground(Color.BLACK); // Đổi màu chữ khi có input
                 }
             }
-            @Override
+
             public void focusLost(FocusEvent e) {
-                if(txt_timkiemnhanvien.getText().equals("")) {
-                    txt_timkiemnhanvien.setText("Mã, Tên, Điện thoại");
-                    txt_timkiemnhanvien.setForeground(new Color(153,153,153));
+                if (txt_timkiemnNV.getText().equals("")) {
+                    txt_timkiemnNV.setText("Tìm kiếm tên/mã...");
+                    txt_timkiemnNV.setForeground(Color.GRAY); // Đổi màu lại khi không có input
                 }
             }
         });
-        txt_timkiemnhanvien.setText("Mã, Tên, Điện thoại");
-        txt_timkiemnhanvien.setColumns(10);
-        txt_timkiemnhanvien.setBounds(10, 28, 236, 26);
-        contentPane.add(txt_timkiemnhanvien);
 
-        btnNewButton_them.addActionListener(this);
-        btnNewButton_xoa.addActionListener(this);
-        btnNewButton_sua.addActionListener(this);
-        btnNewButton_xoaTrang.addActionListener(this);
-        table.addMouseListener(this);
+        Box horizontalBox_3 = Box.createHorizontalBox();
+        horizontalBox_3.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)), "Danh s\u00E1ch nh\u00E2n vi\u00EAn ph\u1EE5c v\u1EE5", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+        horizontalBox_3.setBounds(1008, 84, 522, 315);
+        //contentPane.add(horizontalBox_3);
+        //
+        String [] headers3 = {"Mã Nhân Viên","Tên Nhân Viên", "SĐT"};
+        tableModel3=new DefaultTableModel(headers3,0);
+        JScrollPane scroll3 = new JScrollPane();
+        scroll3.setViewportView(table_3 = new JTable(tableModel3));
+        table_3.setRowHeight(25);
+        table_3.setAutoCreateRowSorter(true);
+        table_3.setAutoResizeMode(JTable.AUTO_RESIZE_NEXT_COLUMN);
+        //
+        JScrollPane scrollPane_3 = new JScrollPane(table_3);
+        horizontalBox_3.add(scrollPane_3);
 
-        DocDuLieuDatabaseVaoTable();
+
+        btnNewButton_DP = new JButton("Đặt Phòng Trước");
+        btnNewButton_DP.setFont(new Font("Tahoma", Font.PLAIN, 15));
+        btnNewButton_DP.setBounds(529, 650, 157, 65);
+        contentPane.add(btnNewButton_DP);
+
+        JLabel lblNewLabel_maKH = new JLabel("Tìm Kiếm Khách hàng");
+        lblNewLabel_maKH.setFont(new Font("Tahoma", Font.BOLD, 15));
+        lblNewLabel_maKH.setBounds(10, 27, 188, 29);
+        contentPane.add(lblNewLabel_maKH);
+
+        txt_timkiemKH = new JTextField("Tìm kiếm tên/mã...");
+        txt_timkiemKH.setForeground(Color.GRAY);
+        txt_timkiemKH.setColumns(10);
+        txt_timkiemKH.setBounds(10, 52, 236, 26);
+        contentPane.add(txt_timkiemKH);
+        txt_timkiemKH.addFocusListener(new FocusAdapter() {
+            public void focusGained(FocusEvent e) {
+                if (txt_timkiemKH.getText().equals("Tìm kiếm tên/mã...")) {
+                    txt_timkiemKH.setText("");
+                    txt_timkiemKH.setForeground(Color.BLACK); // Đổi màu chữ khi có input
+                }
+            }
+
+            public void focusLost(FocusEvent e) {
+                if (txt_timkiemKH.getText().equals("")) {
+                    txt_timkiemKH.setText("Tìm kiếm tên/mã...");
+                    txt_timkiemKH.setForeground(Color.GRAY); // Đổi màu lại khi không có input
+                }
+            }
+        });
+
+        Box horizontalBox_4 = Box.createHorizontalBox();
+        horizontalBox_4.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, new Color(255, 255, 255), new Color(160, 160, 160)), "Danh s\u00E1ch ph\u00F2ng \u0111\u00E3 \u0111\u1EB7t", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+        horizontalBox_4.setBounds(529, 84, 1020, 555);
+        contentPane.add(horizontalBox_4);
+
+        String [] headers4 = {"ID","Mã Phòng", "Mã Khách hàng", "Thời gian đặt phòng", "Thời gian trả phòng","Trạng thái"};
+        tableModel4=new DefaultTableModel(headers4,0);
+        JScrollPane scroll4 = new JScrollPane();
+        scroll4.setViewportView(table_4 = new JTable(tableModel4));
+        table_4.setRowHeight(25);
+        table_4.setAutoCreateRowSorter(true);
+        table_4.setAutoResizeMode(JTable.AUTO_RESIZE_NEXT_COLUMN);
+        //
+        JScrollPane scrollPane_4 = new JScrollPane(table_4);
+        horizontalBox_4.add(scrollPane_4);
+
+        btnNewButton_load = new JButton("Load Phòng");
+        btnNewButton_load.setFont(new Font("Tahoma", Font.PLAIN, 15));
+        btnNewButton_load.setBounds(855, 650, 157, 65);
+        contentPane.add(btnNewButton_load);
+        JLabel lblNewLabel_maP = new JLabel("Tìm Kiếm Phòng");
+        lblNewLabel_maP.setFont(new Font("Tahoma", Font.BOLD, 15));
+        lblNewLabel_maP.setBounds(10, 400, 188, 29);
+        contentPane.add(lblNewLabel_maP);
+
+        btnNewButton_Confirm = new JButton("Xác nhận phòng");
+        btnNewButton_Confirm.setFont(new Font("Tahoma", Font.PLAIN, 15));
+        btnNewButton_Confirm.setBounds(690, 650, 157, 65);
+        contentPane.add(btnNewButton_Confirm);
+
+        txt_timkiemP = new JTextField("Tìm kiếm tên/mã...");
+        txt_timkiemP.setForeground(Color.GRAY);
+        txt_timkiemP.setColumns(10);
+        txt_timkiemP.setBounds(10, 425, 236, 26);
+        contentPane.add(txt_timkiemP);
+        txt_timkiemP.addFocusListener(new FocusAdapter() {
+            public void focusGained(FocusEvent e) {
+                if (txt_timkiemP.getText().equals("Tìm kiếm tên/mã...")) {
+                    txt_timkiemP.setText("");
+                    txt_timkiemP.setForeground(Color.BLACK); // Đổi màu chữ khi có input
+                }
+            }
+
+            public void focusLost(FocusEvent e) {
+                if (txt_timkiemP.getText().equals("")) {
+                    txt_timkiemP.setText("Tìm kiếm tên/mã...");
+                    txt_timkiemP.setForeground(Color.GRAY); // Đổi màu lại khi không có input
+                }
+            }
+        });
+
+        btnNewButton_DP.addActionListener(this);
+        btnNewButton_load.addActionListener(this);
+        btnNewButton_Confirm.addActionListener(this);
+        table_1.addMouseListener(this);
+        table_2.addMouseListener(this);
+        table_3.addMouseListener(this);
+        table_4.addMouseListener(this);
+
+        DocDuLieuDatabaseVaoTable1();
+        DocDuLieuDatabaseVaoTable2();
+        DocDuLieuDatabaseVaoTable3();
+        DocDuLieuDatabaseVaoTable4();
+        // tim kiem
+        txt_timkiemP.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                String searchQuery = txt_timkiemP.getText().trim().toLowerCase();
+                updateTableWithFilter(searchQuery);
+            }
+        });
+        txt_timkiemKH.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                String searchQuery = txt_timkiemKH.getText().trim().toLowerCase();
+                updateTableWithFilterForKH(searchQuery);
+            }
+        });
+        txt_timkiemnNV.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                String searchQuery = txt_timkiemnNV.getText().trim().toLowerCase();
+                updateTableWithFilterForNV(searchQuery);
+            }
+        });
+
+
+
+
+
         this.setVisible(true);
     }
 
 
-    private void DocDuLieuDatabaseVaoTable() throws RemoteException {
+
+    private void DocDuLieuDatabaseVaoTable4() throws RemoteException {
         // TODO Auto-generated method stub
-        List<TaiKhoan> list = tk_dao.getAllTaiKhoan();
-        for (TaiKhoan tk : list) {
-            tableModel.addRow(new Object[] {tk.getTenTK().trim() , tk.getMatKhau().trim()
-                    , tk.getMaNV().getMaNV().trim(), tk.getRole().trim()});
+        tableModel4.setRowCount(0);
+
+        List<DatPhongTruoc> list = dpt_dao.getAllDatPhong();
+
+        for (DatPhongTruoc dpt : list) {
+            String[] rowData = {
+                    dpt.getId() + "",
+                    dpt.getPhong().getMaPhong(),
+                    dpt.getMaKH(),
+                    dpt.getThoiGianBatDau()+ "",
+                    dpt.getThoiGianKetThuc().toString(),
+                    dpt.getTrangThai(),
+            };
+
+            tableModel4.addRow(rowData);
         }
-        table.setModel(tableModel);
+
+        table_4.setModel(tableModel4);
     }
 
 
+
+    private void DocDuLieuDatabaseVaoTable3() throws RemoteException {
+        tableModel3.setRowCount(0);
+
+        List<NhanVien> list = nv_dao.getNhanVienExceptAdmin();
+        for(NhanVien s : list) {
+            String[] rowData = {s.getMaNV(), s.getTenNV(), s.getSdt()};
+            tableModel3.addRow(rowData);
+        }
+        table_3.setModel(tableModel3);
+    }
+
+    private void DocDuLieuDatabaseVaoTable2() throws RemoteException {
+        // TODO Auto-generated method stub
+        tableModel2.setRowCount(0);
+
+        List<Phong> list = phong_dao.getAllPhong();
+
+        // Xóa dữ liệu cũ trong bảng nếu có
+
+        for (Phong s : list) {
+            String[] rowData = {
+                    s.getMaPhong(),
+                    s.getTenPhong(),
+                    s.getLoaiPhong().getLoaiPhong(),
+                    s.getTinhTrang()
+            };
+            tableModel2.addRow(rowData);
+        }
+
+        table_2.setModel(tableModel2);
+
+        // Áp dụng renderer tùy chỉnh để tô màu các hàng
+        table_2.setDefaultRenderer(Object.class, new CustomTableCellRenderer());
+    }
+    class CustomTableCellRenderer extends DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+            String tinhTrang = table.getValueAt(row, 3).toString();
+            System.out.println("tinhTrang"+tinhTrang);
+            if ("Phòng có Khách".equalsIgnoreCase(tinhTrang != null ? tinhTrang.trim() : "")) {
+                System.out.println("yes");
+
+                cell.setBackground(Color.ORANGE);
+            } else {
+                cell.setBackground(Color.WHITE);
+            }
+
+            if (isSelected) {
+                cell.setBackground(table.getSelectionBackground());
+                cell.setForeground(table.getSelectionForeground());
+            } else {
+                cell.setForeground(Color.BLACK);
+            }
+
+            return cell;
+        }
+    }
+
+
+    private void DocDuLieuDatabaseVaoTable1() throws RemoteException {
+        // TODO Auto-generated method stub
+
+        List<KhachHang> list = kh_dao.getAllKhachHang();
+        for(KhachHang s : list) {
+            String[] rowData = {s.getMaKH(), s.getTenKH(),s.getSdt()};
+            tableModel1.addRow(rowData);
+        }
+        table_1.setModel(tableModel1);
+    }
+
+    private void updateTableWithFilter(String searchQuery) {
+        tableModel2.setRowCount(0);
+
+        try {
+            List<Phong> list = phong_dao.getAllPhong();
+            for (Phong s : list) {
+                String maPhong = s.getMaPhong().toLowerCase();
+                String tenPhong = s.getTenPhong().toLowerCase();
+
+
+                if (maPhong.contains(searchQuery) || tenPhong.contains(searchQuery)) {
+                    String[] rowData = {
+                            s.getMaPhong(),
+                            s.getTenPhong(),
+                            s.getLoaiPhong().getLoaiPhong(),
+                            s.getTinhTrang()
+                    };
+                    tableModel2.addRow(rowData);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        table_2.setModel(tableModel2);
+        table_2.setDefaultRenderer(Object.class, new CustomTableCellRenderer());
+    }
+    private void updateTableWithFilterForKH(String searchQuery) {
+        tableModel1.setRowCount(0);
+
+        try {
+            List<KhachHang> list = kh_dao.getAllKhachHang();
+            for (KhachHang s : list) {
+                String maKH = s.getMaKH().toLowerCase();
+                String tenKH = s.getTenKH().toLowerCase();
+
+                if (maKH.contains(searchQuery) || tenKH.contains(searchQuery)) {
+                    String[] rowData = {
+                            s.getMaKH(),
+                            s.getTenKH(),
+                            s.getSdt()
+                    };
+                    tableModel1.addRow(rowData);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        table_1.setModel(tableModel1);
+    }
+    private void updateTableWithFilterForNV(String searchQuery) {
+        tableModel3.setRowCount(0);
+
+        try {
+            List<NhanVien> list = nv_dao.getNhanVienExceptAdmin();
+            for (NhanVien s : list) {
+                String maNV = s.getMaNV().toLowerCase();
+                String tenNV = s.getTenNV().toLowerCase();
+
+                if (maNV.contains(searchQuery) || tenNV.contains(searchQuery)) {
+                    String[] rowData = {
+                            s.getMaNV(),
+                            s.getTenNV(),
+                            s.getSdt()
+                    };
+                    tableModel3.addRow(rowData);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        table_3.setModel(tableModel3);
+    }
     @Override
     public void actionPerformed(ActionEvent e) {
         // TODO Auto-generated method stub
@@ -636,10 +847,14 @@ public class TaiKhoan_GUI extends JFrame implements ActionListener, MouseListene
 //			dispose();
 //            new TimKiemNV_GUI();
 //        }
-//		if (e.getActionCommand().equals("Tài Khoản")) {
-//			dispose();
-//            new TaiKhoan_GUI();
-//        }
+        if (e.getActionCommand().equals("Tài Khoản")) {
+            dispose();
+            try {
+                new TaiKhoan_GUI();
+            } catch (RemoteException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
         if (e.getActionCommand().equals("Chức Vụ")) {
             dispose();
             try {
@@ -670,14 +885,10 @@ public class TaiKhoan_GUI extends JFrame implements ActionListener, MouseListene
                 throw new RuntimeException(ex);
             }
         }
-        if (e.getActionCommand().equals("Tài Khoản")) {
-            dispose();
-            try {
-                new TaiKhoan_GUI();
-            } catch (RemoteException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
+//		if (e.getActionCommand().equals("Tìm Kiếm Dịch Vụ")) {
+//			dispose();
+//            new TimKiemDV_GUI();
+//        }
         if (e.getActionCommand().equals("Loại Dịch Vụ")) {
             dispose();
             try {
@@ -778,140 +989,101 @@ public class TaiKhoan_GUI extends JFrame implements ActionListener, MouseListene
         }
         //////////////////////////////////////////////////////////////////////////
         Object o = e.getSource();
-        if(o.equals(btnNewButton_them)) {
+        if(o.equals(btnNewButton_DP)) {
+            int row1 = table_1.getSelectedRow();
+            int row2 = table_2.getSelectedRow();
+            String maKH = tableModel1.getValueAt(row1, 0).toString().trim();
+            String maPhong = tableModel2.getValueAt(row2, 0).toString().trim();
+            new formDatPhongTruoc(maKH,maPhong);
             try {
-                themNV();
+                DocDuLieuDatabaseVaoTable4();
             } catch (RemoteException ex) {
                 throw new RuntimeException(ex);
             }
         }
-        if(o.equals(btnNewButton_xoa)) {
+        if(o.equals(btnNewButton_load)) {
             try {
-                xoaNV();
+                tailai();
             } catch (RemoteException ex) {
                 throw new RuntimeException(ex);
             }
         }
-        if(o.equals(btnNewButton_sua)) {
+        if(o.equals(btnNewButton_Confirm)) {
             try {
-                suaNV();
+                confirm();
             } catch (RemoteException ex) {
                 throw new RuntimeException(ex);
             }
         }
-        if(o.equals(btnNewButton_xoaTrang))
-            xoaTrang();
     }
 
+    private void tailai() throws RemoteException{
+        DocDuLieuDatabaseVaoTable4();
+        DocDuLieuDatabaseVaoTable2();
 
-    private void xoaTrang() {
+    }
+    private void datPhong() throws RemoteException {
         // TODO Auto-generated method stub
-        textField_tenTK.setText("");
-        textField_mk.setText("");
-        textField_maNV.setText("");
-        textField_role.setText("");
-        textField_tenTK.requestFocus();
-        comboBox_maNV.setSelectedItem("");
-        comboBox_role.setSelectedItem("");
-
-    }
-
-
-    private void suaNV() throws RemoteException {
-        int row = table.getSelectedRow();
-
-        if (row < 0) {
-            JOptionPane.showMessageDialog(null, "Vui lòng chọn một nhân viên để sửa!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+        int row1 = table_1.getSelectedRow();
+        int row2 = table_2.getSelectedRow();
+        int row3 = table_3.getSelectedRow();
+        if(row1==-1 || row2==-1 || row3==-1) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn khách hàng, phòng và nhân viên phục vụ");
             return;
         }
-        try {
-            // Lấy thông tin từ giao diện
-            String tenTK = textField_tenTK.getText().trim();
-            String mk = textField_mk.getText().trim();
-            String maNV = comboBox_maNV.getSelectedItem().toString();
-            String role = comboBox_role.getSelectedItem().toString();
 
-            // Truy vấn nhân viên từ cơ sở dữ liệu
-            NhanVien nv= nv_dao.getNhanVienByMaNhanVien(maNV);
-            TaiKhoan tk = tk_dao.getTaiKhoanById(tenTK);
-            if (tk != null) {
-                // Cập nhật các thuộc tính
-//                tk.setTenTK (hoten);
-                tk.setMatKhau(mk);
-                tk.setMaNV(nv);
-                tk.setRole(role);
+        String maKH = tableModel1.getValueAt(row1, 0).toString();
+        String maPhong = tableModel2.getValueAt(row2, 0).toString();
+        String maNV = tableModel3.getValueAt(row3, 0).toString();
+        String tinhTrangPhong = phong_dao.getPhongByLoaiPhong(maPhong).getTinhTrang();
 
-                // Gọi phương thức cập nhật
-                if (tk_dao.updateTaiKhoan(tk)) {
-                    // Cập nhật giao diện bảng
-                    table.setValueAt(mk, row, 1);
-                    table.setValueAt(maNV, row, 2);
-                    table.setValueAt(role, row, 3);
-
-                    JOptionPane.showMessageDialog(null, "Cập nhật thông tin nhân viên thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    JOptionPane.showMessageDialog(null, "Cập nhật thất bại, vui lòng thử lại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                }
-            } else {
-                JOptionPane.showMessageDialog(null, "Không tìm thấy nhân viên với mã: " + tenTK, "Lỗi", JOptionPane.ERROR_MESSAGE);
-            }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Dữ liệu nhập không hợp lệ! " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
+        if ("Phòng có Khách".equalsIgnoreCase(tinhTrangPhong != null ? tinhTrangPhong.trim() : "")) {
+            JOptionPane.showMessageDialog(this, "Phòng đã có khách, không thể đặt phòng");
+            return;
         }
+        PhieuDatPhong pdp = new PhieuDatPhong();
+        pdp.setMaKH(kh_dao.getKhachHangByMaKhachHang(maKH));
+        pdp.setMaPhong(phong_dao.getPhongByLoaiPhong(maPhong));
+        pdp.setMaNV(nv_dao.getNhanVienByChucVu(maNV));
+        pdp.setTgDatPhong(Timestamp.from(Instant.now()));
+        if(pdp_dao.createPhieuDatPhong(pdp)) {
+            phong_dao.updateTrangThaiDP(maPhong);
+            JOptionPane.showMessageDialog(this, "Đặt phòng thành công");
+
+        }
+        else {
+            JOptionPane.showMessageDialog(this, "Đặt phòng thất bại");
+        }
+        tailai();
+
     }
 
-    private void themNV() throws RemoteException {
-        String tenTK =tk_dao.generateNextTenTK();
-        String mk = textField_mk.getText().trim();
-        String maNV = comboBox_maNV.getSelectedItem().toString();
-        String role = comboBox_role.getSelectedItem().toString();
-        NhanVien nv= nv_dao.getNhanVienByMaNhanVien(maNV);
-        TaiKhoan tk = new TaiKhoan(tenTK, mk , nv,role);
-        if (tk_dao.createTaiKhoan(tk)) {
-            JOptionPane.showMessageDialog(this, "Thêm tài khoản mới thành công");
-            tableModel.addRow(new Object[] {tk.getTenTK().trim() , tk.getMatKhau().trim()
-                    , tk.getMaNV().getMaNV().trim(), tk.getRole().trim()});
-        } else {
-            JOptionPane.showMessageDialog(this, "Không thể tạo nhân viên mới");
+    private void confirm() throws RemoteException {
+        // TODO Auto-generated method stub
+        int row1 =table_4.getSelectedRow();
+        if(row1==-1 ) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn phòng đặt trước");
+            return;
         }
 
-    }
-    private void xoaNV() throws RemoteException {
-        int row = table.getSelectedRow();
-        if (row >= 0) {
-            int luaChon = JOptionPane.showConfirmDialog(this, "Bạn có muốn xóa Nhân viên này không?");
-            if (luaChon == JOptionPane.YES_OPTION) {
-                String maTK = (String) table.getValueAt(row, 0);
-
-                if (tk_dao.deleteTaiKhoan(maTK)) {
-                    tableModel.removeRow(row);
-                    xoaTrang();
-                    JOptionPane.showMessageDialog(this, "Xóa nhân viên thành công!");
-                } else {
-                    JOptionPane.showMessageDialog(this, "Xóa nhân viên thất bại!");
-                }
-            }
-        } else {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn một nhân viên để xóa.");
+        String maKH = tableModel4.getValueAt(row1, 2).toString();
+        String maPhong = tableModel4.getValueAt(row1, 1).toString();
+        String tinhTrang =tableModel4.getValueAt(row1, 5).toString().trim();
+        int id =Integer.parseInt(tableModel4.getValueAt(row1, 0).toString()) ;
+        if(tinhTrang.equals("Đã nhận phòng") ) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn phòng chưa xác nhận");
+            return;
         }
+        new XacNhanPhong(id,maKH,maPhong);
+
+
     }
-
-
 
     @Override
     public void mouseClicked(MouseEvent e) {
         // TODO Auto-generated method stub
-        int row = table.getSelectedRow();
-        textField_tenTK.setText(tableModel.getValueAt(row, 0).toString());
-        textField_mk.setText(tableModel.getValueAt(row, 1).toString());
-        textField_maNV.setText(tableModel.getValueAt(row, 2).toString());
-        textField_role.setText(tableModel.getValueAt(row, 3).toString());
-        ((JComboBox) comboBox_role).setSelectedItem(tableModel.getValueAt(row, 3).toString());
-        ((JComboBox) comboBox_maNV).setSelectedItem(tableModel.getValueAt(row, 2).toString());
 
     }
-
 
     @Override
     public void mousePressed(MouseEvent e) {
@@ -919,20 +1091,17 @@ public class TaiKhoan_GUI extends JFrame implements ActionListener, MouseListene
 
     }
 
-
     @Override
     public void mouseReleased(MouseEvent e) {
         // TODO Auto-generated method stub
 
     }
 
-
     @Override
     public void mouseEntered(MouseEvent e) {
         // TODO Auto-generated method stub
 
     }
-
 
     @Override
     public void mouseExited(MouseEvent e) {

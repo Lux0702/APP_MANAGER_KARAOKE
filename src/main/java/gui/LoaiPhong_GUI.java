@@ -363,6 +363,15 @@ public class LoaiPhong_GUI extends JFrame implements ActionListener, MouseListen
 		mntmNewMenuItem_datPhong.addActionListener(this);
 		mnNewMenu_phong.add(mntmNewMenuItem_datPhong);
 
+		JMenuItem mntmNewMenuItem_datPhongTruoc = new JMenuItem("Đặt Phòng Trước");
+
+		mntmNewMenuItem_datPhongTruoc.setIcon(new ImageIcon(Menu_GUI.class.getResource("/images/ic_ThanhToan.png")));
+
+
+		mntmNewMenuItem_datPhongTruoc.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+		mntmNewMenuItem_datPhongTruoc.addActionListener(this);
+		mnNewMenu_phong.add(mntmNewMenuItem_datPhongTruoc);
+
 		JMenu mnNewMenu_hd = new JMenu("Hoá Đơn");
 
 		mnNewMenu_hd.setIcon(new ImageIcon(Menu_GUI.class.getResource("/images/ic_HD.png")));
@@ -574,10 +583,14 @@ public class LoaiPhong_GUI extends JFrame implements ActionListener, MouseListen
 				throw new RuntimeException(ex);
 			}
 		}
-//		if (e.getActionCommand().equals("Tìm Kiếm Dịch Vụ")) {
-//			dispose();
-//            new TimKiemDV_GUI();
-//        }
+		if (e.getActionCommand().equals("Đặt Phòng Trước")) {
+			dispose();
+			try {
+				new DatPhongTruoc_GUI();
+			} catch (RemoteException ex) {
+				throw new RuntimeException(ex);
+			}
+		}
 		if (e.getActionCommand().equals("Loại Dịch Vụ")) {
 			dispose();
 			try {

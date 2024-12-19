@@ -290,6 +290,7 @@ public class Menu_GUI extends JFrame implements ActionListener{
 			mntmNewMenuItem_upLP.setFont(new Font("Segoe UI", Font.PLAIN, 15));
 			mntmNewMenuItem_upLP.addActionListener(this);
 			mnNewMenu_phong.add(mntmNewMenuItem_upLP);
+
 		}
 		
 		JMenuItem mntmNewMenuItem_findPhong = new JMenuItem("Tìm Kiếm Phòng");
@@ -323,6 +324,15 @@ public class Menu_GUI extends JFrame implements ActionListener{
 		mntmNewMenuItem_datPhong.setFont(new Font("Segoe UI", Font.PLAIN, 15));
 		mntmNewMenuItem_datPhong.addActionListener(this);
 		mnNewMenu_phong.add(mntmNewMenuItem_datPhong);
+
+		JMenuItem mntmNewMenuItem_datPhongTruoc = new JMenuItem("Đặt Phòng Trước");
+
+		mntmNewMenuItem_datPhongTruoc.setIcon(new ImageIcon(Menu_GUI.class.getResource("/images/ic_ThanhToan.png")));
+
+
+		mntmNewMenuItem_datPhongTruoc.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+		mntmNewMenuItem_datPhongTruoc.addActionListener(this);
+		mnNewMenu_phong.add(mntmNewMenuItem_datPhongTruoc);
 		
 		JMenu mnNewMenu_hd = new JMenu("Hoá Đơn");
 
@@ -513,6 +523,14 @@ public class Menu_GUI extends JFrame implements ActionListener{
 			dispose();
 			try {
 				new DatPhong_GUI();
+			} catch (RemoteException ex) {
+				throw new RuntimeException(ex);
+			}
+		}
+		if (e.getActionCommand().equals("Đặt Phòng Trước")) {
+			dispose();
+			try {
+				new DatPhongTruoc_GUI();
 			} catch (RemoteException ex) {
 				throw new RuntimeException(ex);
 			}
